@@ -17,6 +17,7 @@
     "html-webpack-plugin": "^2.26.0",
     "style-loader": "^0.18.0",
     "three": "^0.83.0",
+    "three-orbit-controls": "^82.1.0",
     "webpack": "^2.2.0",
     "webpack-dev-server": "^2.2.0"
   }
