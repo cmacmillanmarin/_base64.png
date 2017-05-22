@@ -10,7 +10,8 @@ import {
 	Mesh,
 	Vector3,
 	TextureLoader,
-	PlaneGeometry
+	PlaneGeometry,
+	ImageUtils
 } from 'three'
 
 import OrbitControls from '../local_modules/OrbitControls.js'
@@ -24,13 +25,32 @@ const renderer = new WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
+const geometry = new BoxGeometry(3, 3, 3)
+const material = new MeshBasicMaterial({ color: 0xffffff })
+const cube = new Mesh(geometry, material)
+
+// 'actual'
 const loader = new TextureLoader()
-const img = loader.load('./src/images/gorillaz.png', (img) => {
-	const imgWidth = 10
-	const plane = new Mesh(new PlaneGeometry(imgWidth, imgWidth*img.image.height/img.image.width), img)
-	plane.overdraw = true
-	scene.add(plane)
+loader.crossOrigin = true
+const plane = new Mesh(new PlaneGeometry(3, 3))
+loader.load('./src/images/gorillaz.png', (img) => {
+	plane.map = img
+	plane.needsUpdate = true
+	plane.position.set(-1.5,0,0)
 })
+
+scene.add(plane)
+
+// DEPRECATED
+const img2 = new MeshBasicMaterial({ map: ImageUtils.loadTexture('src/images/gorillaz.png') })
+img2.map.needsUpdate = true
+
+const plane2 = new Mesh(new PlaneGeometry(3, 3), img2)
+plane2.overdraw = true
+console.log(plane2.position)
+plane2.position.set(1.5,0,0)
+scene.add(plane2)
+
 
 camera.position.set(0, 0, 5)
 
