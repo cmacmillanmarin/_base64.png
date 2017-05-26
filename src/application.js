@@ -1,93 +1,69 @@
 //
 //	application.js
 
-import {
-	Scene,
-	PerspectiveCamera,
-	WebGLRenderer,
-	BoxGeometry,
-	MeshBasicMaterial,
-	Mesh,
-	Vector3,
-	TextureLoader,
-	PlaneGeometry,
-	ImageUtils,
-	Geometry,
-	Points,
-	PointsMaterial,
-	Color
-} from 'three'
-
-import OrbitControls from '../local_modules/OrbitControls.js'
-
 import './style/main.css'
+import { ImageUtils } from 'three'
 
+// Image and order hash
+const base64Image = './src/images/img.png'
+const base64OrderHash = 'Az9By8Cx7_Dw6Ev5Fu4Gt3+Hs2Ir1Jq0KpLoMnNmOlPkQjRiShTgUfVeWdXcYbZa'
 
+// Variables
+let imageWidth
+let imageHeight
+let columnsOrder
+let rowsOrder
 
+// Creates 3 Canvas
+const originCanvas = document.createElement('canvas')
+const scrambledCanvas = document.createElement('canvas')
+const finalCanvas = document.createElement('canvas')
+originCanvas.id = 'origin'
+scrambledCanvas.id = 'scrambled'
+finalCanvas.id = 'final'
+document.body.appendChild(originCanvas)
+document.body.appendChild(scrambledCanvas)
+document.body.appendChild(finalCanvas)
+const originCtx = originCanvas.getContext('2d')
+const scrambledCtx = scrambledCanvas.getContext('2d')
+const finalCtx = finalCanvas.getContext('2d')
 
-
-// IMAGE
-const imagePath = './src/images/nba.jpg'
-
-// WHAT YOU WANNA DO?
-const task = (true) ? 'scramble' : 'unscramble'
-
-// WHAT YOU WANNA SEE
-const see = (false) ? 'result' : 'original'
-
-// KEYS
-const pi = 3.1416
-const e = 2.7183
-const euler = 0.57721
-const pythagoras = 1.4142
-const fibonacci = 1.6180
-const gravity = 9.8
-const universe = 42
-const faraday = 96.485
-const wien = 4.791
-const plank = 3.990
-
-// SELECTED KEY
-const key = plank
-
-// CONSOLE STATUS
-console.info('Scramble ' + imagePath + ' with key ' + key)
-
-
-
-
-
-// THREE SCENE
-const scene = new Scene()
-const renderer = new WebGLRenderer()
-const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000)
-const controls = new OrbitControls(camera, new Vector3(0, 0, 0))
-
-renderer.setSize(window.innerWidth, window.innerHeight)
-document.body.appendChild(renderer.domElement)
-
-camera.position.set(0, 0, 1200)
+// Creates a Button to download the scrambled Image
+const button = document.createElement('a')
+button.id = 'button'
+button.innerHTML = 'DOWNLOAD PHOTO'
+button.download = 'image.png'
+document.body.appendChild(button)
+button.addEventListener('click', downloadImage, false);
 
 init()
 
-
-
-
-
-
 // Init
 function init() {
-	render()
 	const img = new Image()
-  	img.src = imagePath
+  	img.src = base64Image
   	img.onload = function() {
-		const originMatrix = getColorMatrix(img)
-		const finalMatrix = (task === 'scramble') ? scrambleMatrix(originMatrix) : unscrambleMatrix(originMatrix)
-		drawImage((see === 'result') ? finalMatrix : originMatrix , img.width/2, img.height/2)
+		imageWidth = img.width
+		imageHeight = img.height
+		originCanvas.width = imageWidth
+		originCanvas.height = imageHeight
+		scrambledCanvas.width = imageWidth
+		scrambledCanvas.height = imageHeight
+		finalCanvas.width = imageWidth
+		finalCanvas.height = imageHeight
+		columnsOrder = decodeOrderHash(base64OrderHash, 0)
+		rowsOrder = decodeOrderHash(base64OrderHash, 1)
+		const originMatrix = getColorMatrixOf(img)
+		const scrambledMatrix = scrambleMatrix(originMatrix, columnsOrder, rowsOrder)
+		const finalMatrix = unScrambleMatrix(scrambledMatrix, columnsOrder, rowsOrder)
+		drawImage(originMatrix, originCtx)
+		drawImage(scrambledMatrix, scrambledCtx)
+		drawImage(finalMatrix, finalCtx)
 	}
 }
 
-function getColorMatrix(img) {
+// Returns a matrix with every pixel, RGBA mode, of an image
+function getColorMatrixOf(img) {
 	const matrix = []
     const canvas = document.createElement('canvas')
 	const context = canvas.getContext('2d')
@@ -108,76 +84,112 @@ function getColorMatrix(img) {
     return matrix
 }
 
-function scrambleMatrix(matrix) {
-	const finalMatrix = []
-	const realKey = parseInt(key * 10)
-	for (let i = 0; i < matrix.length; i++) {
-		finalMatrix.push([])
-		for (let j = 0; j < matrix[i].length; j++) {
-			const plus = (j % 2 === 0) ? -1 : 1
-			const alpha = (j % 3 === 0) ? 1 : -1
-			const R = getRGBValidValue(matrix[i][j][0], (realKey * plus))
-			const G = getRGBValidValue(matrix[i][j][1], (realKey * plus))
-			const B = getRGBValidValue(matrix[i][j][2], (realKey * plus))
-			const A = (alpha === 1) ? 0 : 255
-			finalMatrix[i].push([R, G, B, A])
-		}
-	}
+// Scrambles a matrix
+function scrambleMatrix(matrix, columnsOrder, rowsOrder) {
+	let finalMatrix = scrambleColumns(matrix, columnsOrder)
+	finalMatrix = scrambleRows(finalMatrix, rowsOrder)
 	return finalMatrix
 }
 
-// data texture con rgbs y meterlo a un shader material
-
-function getRGBValidValue(val, key) {
-	let finalVal
-	if (key < 0) {
-		if (val + key < 0) finalVal = 255 + val + key
-		else finalVal = val + key
-	} else {
-		if (val + key > 255) finalVal = val + key - 255
-		else finalVal = val + key
+// Scrambles the columns of a matrix with a concrete order
+function scrambleColumns(matrix, order) {
+	let auxMatrix = initMatrixFrom(matrix)
+	for (let i = 0; i < matrix.length; i++) {
+		for (let j = 0; j < matrix[i].length; j++)
+			for (let k = 0; k < 4; k++)
+				auxMatrix[j][i][k] = matrix[j][order[i]][k]
 	}
-	return finalVal
+	return auxMatrix
 }
 
-function drawImage(matrix, initX, initY) {
-	let x = 0
-	let y = 0
+// Scrambles the rows of a matrix with a concrete order
+function scrambleRows(matrix, order) {
+	let auxMatrix = []
+	auxMatrix.length = matrix.length
+	for (let i = 0; i < matrix.length; i++)
+		auxMatrix[i] = matrix[order[i]]
+	return auxMatrix
+}
+
+// unscrambles a matrix
+function unScrambleMatrix(matrix, columnsOrder, rowsOrder) {
+	let finalMatrix = unScrambleRows(matrix, rowsOrder)
+	finalMatrix = unScrambleColumns(finalMatrix, columnsOrder)
+	return finalMatrix
+}
+
+// unscrambles the columns of a matrix with a concrete order
+function unScrambleColumns(matrix, order) {
+	let auxMatrix = initMatrixFrom(matrix)
 	for (let i = 0; i < matrix.length; i++) {
-		y = -initY + i
+		for (let j = 0; j < matrix[i].length; j++)
+			for (let k = 0; k < 4; k++)
+				auxMatrix[j][i][k] = matrix[j][order[i]][k]
+	}
+	return auxMatrix
+}
+
+// unscrambles the rows of a matrix with a concrete order
+function unScrambleRows(matrix, order) {
+	let auxMatrix = []
+	auxMatrix.length = matrix.length
+	for (let i = 0; i < matrix.length; i++)
+		auxMatrix[i] = matrix[order[i]]
+	return auxMatrix
+}
+
+// Draws an image from a color matrix in a concrete context
+function drawImage(matrix, ctx) {
+	let img = ctx.createImageData(imageWidth,	imageHeight)
+	for (let i = 0; i < img.data.length; i = i + 4) {
+		const row = parseInt((i / 4) / imageWidth)
+		const column = parseInt(i / 4) - imageWidth * row
+		img.data[i] = matrix[row][column][0]
+		img.data[i + 1] = matrix[row][column][1]
+		img.data[i + 2] = matrix[row][column][2]
+		img.data[i + 3] = matrix[row][column][3]
+	}
+	ctx.putImageData(img, 0, 0)
+}
+
+// Decodes the order hash with a concrete orientation
+function decodeOrderHash(hash, orientation) {
+	let orderArray = []
+	const auxHash = (orientation === 0) ? hash : invest(hash)
+	const loops = parseInt(imageWidth/hash.length)
+	for (let i = 0; i < loops; i++) {
+		for (let j = 0; j < hash.length && orderArray.length < imageWidth; j++)
+			orderArray.push(charToDec(auxHash[j]) + hash.length * i)
+	}
+	return orderArray
+}
+
+// Returns an integer from 0 to 63 depending on the char position
+function charToDec(char) {
+    return char.split('').reduce((result, ch) => result * 16 + 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+_'.indexOf(ch), 0)
+}
+
+// Invest the order of a hash
+function invest(hash) {
+	let auxHash = ''
+	for (let i = 0; i < hash.length; i++) auxHash = auxHash + hash[(hash.length - 1) - i]
+	return auxHash
+}
+
+// Initializes a matrix from another one
+function initMatrixFrom(matrix) {
+	let auxMatrix = []
+	for (let i = 0; i < matrix.length; i++) {
+		auxMatrix.push([])
 		for (let j = 0; j < matrix[i].length; j++) {
-			x = -initX + j
-			if (j % 5 === 0)scene.add(newDot(matrix[i][j][0], matrix[i][j][1], matrix[i][j][2], new Vector3(x, y, 0)))
+			auxMatrix[i].push([0,0,0,0])
 		}
 	}
+	return auxMatrix
 }
 
-function newDot(r, g, b, pos) {
-	const dotGeometry = new Geometry()
-	dotGeometry.vertices.push(pos)
-	const dotMaterial = new PointsMaterial( { size: 1, sizeAttenuation: false, color: new Color(rgbToHex(r, g, b)) } );
-	const dot = new Points( dotGeometry, dotMaterial )
-	return dot
-
-}
-
-function componentToHex(c) {
-    var hex = c.toString(16)
-    return hex.length == 1 ? "0" + hex : hex
-}
-
-function rgbToHex(r, g, b) {
-    return parseInt("0x" + componentToHex(r) + componentToHex(g) + componentToHex(b))
-}
-
-function unscrambleMatrix() {
-	return 0
-}
-
-// Render
-
-function render() {
-	requestAnimationFrame(render)
-	controls.update()
-	renderer.render(scene, camera)
+// Downloads the scrambled image
+function downloadImage() {
+	let dataURL = finalCanvas.toDataURL('image/png')
+	this.href = dataURL
 }
