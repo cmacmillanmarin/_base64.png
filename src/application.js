@@ -7,12 +7,14 @@ import { ImageUtils } from 'three'
 // Image and order hash
 const base64Image = './src/images/img.png'
 const base64OrderHash = 'Az9By8Cx7_Dw6Ev5Fu4Gt3+Hs2Ir1Jq0KpLoMnNmOlPkQjRiShTgUfVeWdXcYbZa'
+const wrongHash = 'ABCDEFGHIJKLMNOPQRSTUVW0123456789+_XYZabcdefghijklmnopqrstuvwxyz'
 
 // Variables
 let imageWidth
 let imageHeight
 let columnsOrder
 let rowsOrder
+let realWrongHash
 
 // Creates 3 Canvas
 const originCanvas = document.createElement('canvas')
@@ -30,11 +32,10 @@ const finalCtx = finalCanvas.getContext('2d')
 
 // Creates a Button to download the scrambled Image
 const button = document.createElement('a')
-button.id = 'button'
 button.innerHTML = 'DOWNLOAD PHOTO'
-button.download = 'image.png'
+button.download = 'scrambled-image.png'
 document.body.appendChild(button)
-button.addEventListener('click', downloadImage, false);
+button.addEventListener('click', downloadImage, false)
 
 init()
 
@@ -53,6 +54,7 @@ function init() {
 		finalCanvas.height = imageHeight
 		columnsOrder = decodeOrderHash(base64OrderHash, 0)
 		rowsOrder = decodeOrderHash(base64OrderHash, 1)
+		realWrongHash = decodeOrderHash(wrongHash)
 		const originMatrix = getColorMatrixOf(img)
 		const scrambledMatrix = scrambleMatrix(originMatrix, columnsOrder, rowsOrder)
 		const finalMatrix = unScrambleMatrix(scrambledMatrix, columnsOrder, rowsOrder)
@@ -87,6 +89,8 @@ function getColorMatrixOf(img) {
 // Scrambles a matrix
 function scrambleMatrix(matrix, columnsOrder, rowsOrder) {
 	let finalMatrix = scrambleColumns(matrix, columnsOrder)
+	finalMatrix = scrambleColumns(finalMatrix, columnsOrder)
+	finalMatrix = scrambleRows(finalMatrix, rowsOrder)
 	finalMatrix = scrambleRows(finalMatrix, rowsOrder)
 	return finalMatrix
 }
@@ -114,19 +118,10 @@ function scrambleRows(matrix, order) {
 // unscrambles a matrix
 function unScrambleMatrix(matrix, columnsOrder, rowsOrder) {
 	let finalMatrix = unScrambleRows(matrix, rowsOrder)
+	finalMatrix = unScrambleRows(finalMatrix, rowsOrder)
+	finalMatrix = unScrambleColumns(finalMatrix, columnsOrder)
 	finalMatrix = unScrambleColumns(finalMatrix, columnsOrder)
 	return finalMatrix
-}
-
-// unscrambles the columns of a matrix with a concrete order
-function unScrambleColumns(matrix, order) {
-	let auxMatrix = initMatrixFrom(matrix)
-	for (let i = 0; i < matrix.length; i++) {
-		for (let j = 0; j < matrix[i].length; j++)
-			for (let k = 0; k < 4; k++)
-				auxMatrix[j][i][k] = matrix[j][order[i]][k]
-	}
-	return auxMatrix
 }
 
 // unscrambles the rows of a matrix with a concrete order
@@ -134,7 +129,17 @@ function unScrambleRows(matrix, order) {
 	let auxMatrix = []
 	auxMatrix.length = matrix.length
 	for (let i = 0; i < matrix.length; i++)
-		auxMatrix[i] = matrix[order[i]]
+		auxMatrix[order[i]] = matrix[i]
+	return auxMatrix
+}
+
+// unscrambles the columns of a matrix with a concrete order
+function unScrambleColumns(matrix, order) {
+	let auxMatrix = initMatrixFrom(matrix)
+	for (let i = 0; i < matrix.length; i++)
+		for (let j = 0; j < matrix[i].length; j++)
+			for (let k = 0; k < 4; k++)
+				auxMatrix[j][order[i]][k] = matrix[j][i][k]
 	return auxMatrix
 }
 
@@ -190,6 +195,6 @@ function initMatrixFrom(matrix) {
 
 // Downloads the scrambled image
 function downloadImage() {
-	let dataURL = finalCanvas.toDataURL('image/png')
+	let dataURL = scrambledCanvas.toDataURL('image/png')
 	this.href = dataURL
 }
