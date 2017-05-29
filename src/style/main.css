@@ -1,4 +1,5 @@
 html, body {
+    font-family: 'Helvetica neue', sans-serif;
     position: fixed;
     top: 0;
     left: 0;
@@ -17,8 +18,8 @@ canvas {
     margin: 0;
     padding: 0;
     background: black;
-    height: 512px;
-    width: 512px;
+    height: 350px;
+    width: 350px;
 }
 
 #origin {

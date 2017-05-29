@@ -4,7 +4,7 @@
 import './style/main.css'
 
 // Image
-const base64Image = './src/images/img.png'
+const base64Image = './src/images/kobe.png'
 
 // Variables
 let imageWidth
@@ -17,6 +17,8 @@ const columnsScrambleLevel = 2
 const rowsUnscrambleLevel = rowsScrambleLevel
 const columnsUnscrambleLevel = columnsScrambleLevel
 const myBase64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+_'
+const myBase32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef'
+const base = myBase64
 
 // Creates 3 Canvas
 const originCanvas = document.createElement('canvas')
@@ -161,10 +163,10 @@ function drawImage(matrix, ctx) {
 
 function generateRandomHash() {
 	let hash = ''
-    for (let i=0; i < myBase64.length; i++) {
-		let pos = Math.floor(Math.random() * myBase64.length)
-		while (hash.indexOf(myBase64.charAt(pos)) >= 0) pos = Math.floor(Math.random() * myBase64.length)
-		hash += myBase64.charAt(pos)
+    for (let i=0; i < base.length; i++) {
+		let pos = Math.floor(Math.random() * base.length)
+		while (hash.indexOf(base.charAt(pos)) >= 0) pos = Math.floor(Math.random() * base.length)
+		hash += base.charAt(pos)
 	}
     return hash
 }
@@ -182,7 +184,7 @@ function decodeOrderHash(hash, orientation) {
 
 // Returns an integer from 0 to 63 depending on the char position
 function charToDec(char) {
-    return char.split('').reduce((result, ch) => result * 16 + myBase64.indexOf(ch), 0)
+    return char.split('').reduce((result, ch) => result * 16 + base.indexOf(ch), 0)
 }
 
 // Invest the order of a hash
