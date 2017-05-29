@@ -4,7 +4,7 @@
 import './style/main.css'
 
 // Image
-const base64Image = './src/images/kobe.png'
+const base64Image = './src/images/zuckerberg.png'
 
 // Variables
 let imageWidth
