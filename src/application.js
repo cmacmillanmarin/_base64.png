@@ -4,17 +4,20 @@
 import './style/main.css'
 import { ImageUtils } from 'three'
 
-// Image and order hash
+// Image
 const base64Image = './src/images/img.png'
-const base64OrderHash = 'Az9By8Cx7_Dw6Ev5Fu4Gt3+Hs2Ir1Jq0KpLoMnNmOlPkQjRiShTgUfVeWdXcYbZa'
-const wrongHash = 'ABCDEFGHIJKLMNOPQRSTUVW0123456789+_XYZabcdefghijklmnopqrstuvwxyz'
 
 // Variables
 let imageWidth
 let imageHeight
 let columnsOrder
 let rowsOrder
-let realWrongHash
+let base64OrderHash
+const rowsScrambleLevel = 2
+const columnsScrambleLevel = 2
+const rowsUnscrambleLevel = rowsScrambleLevel
+const columnsUnscrambleLevel = columnsScrambleLevel
+const myBase64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+_'
 
 // Creates 3 Canvas
 const originCanvas = document.createElement('canvas')
@@ -52,9 +55,10 @@ function init() {
 		scrambledCanvas.height = imageHeight
 		finalCanvas.width = imageWidth
 		finalCanvas.height = imageHeight
+		base64OrderHash = generateRandomHash()
+		console.log(base64OrderHash)
 		columnsOrder = decodeOrderHash(base64OrderHash, 0)
 		rowsOrder = decodeOrderHash(base64OrderHash, 1)
-		realWrongHash = decodeOrderHash(wrongHash)
 		const originMatrix = getColorMatrixOf(img)
 		const scrambledMatrix = scrambleMatrix(originMatrix, columnsOrder, rowsOrder)
 		const finalMatrix = unScrambleMatrix(scrambledMatrix, columnsOrder, rowsOrder)
@@ -88,21 +92,20 @@ function getColorMatrixOf(img) {
 
 // Scrambles a matrix
 function scrambleMatrix(matrix, columnsOrder, rowsOrder) {
-	let finalMatrix = scrambleColumns(matrix, columnsOrder)
-	finalMatrix = scrambleColumns(finalMatrix, columnsOrder)
-	finalMatrix = scrambleRows(finalMatrix, rowsOrder)
-	finalMatrix = scrambleRows(finalMatrix, rowsOrder)
-	return finalMatrix
+	for (let i = 0; i < columnsScrambleLevel; i++)
+		matrix = scrambleColumns(matrix, columnsOrder)
+	for (let i = 0; i < rowsScrambleLevel; i++)
+		matrix = scrambleRows(matrix, rowsOrder)
+	return matrix
 }
 
 // Scrambles the columns of a matrix with a concrete order
 function scrambleColumns(matrix, order) {
 	let auxMatrix = initMatrixFrom(matrix)
-	for (let i = 0; i < matrix.length; i++) {
+	for (let i = 0; i < matrix.length; i++)
 		for (let j = 0; j < matrix[i].length; j++)
 			for (let k = 0; k < 4; k++)
 				auxMatrix[j][i][k] = matrix[j][order[i]][k]
-	}
 	return auxMatrix
 }
 
@@ -117,11 +120,11 @@ function scrambleRows(matrix, order) {
 
 // unscrambles a matrix
 function unScrambleMatrix(matrix, columnsOrder, rowsOrder) {
-	let finalMatrix = unScrambleRows(matrix, rowsOrder)
-	finalMatrix = unScrambleRows(finalMatrix, rowsOrder)
-	finalMatrix = unScrambleColumns(finalMatrix, columnsOrder)
-	finalMatrix = unScrambleColumns(finalMatrix, columnsOrder)
-	return finalMatrix
+	for (let i = 0; i < rowsUnscrambleLevel; i++)
+		matrix = unScrambleRows(matrix, rowsOrder)
+	for (let i = 0; i < columnsUnscrambleLevel; i++)
+		matrix = unScrambleColumns(matrix, columnsOrder)
+	return matrix
 }
 
 // unscrambles the rows of a matrix with a concrete order
@@ -157,21 +160,30 @@ function drawImage(matrix, ctx) {
 	ctx.putImageData(img, 0, 0)
 }
 
+function generateRandomHash() {
+	let hash = ''
+    for (let i=0; i < myBase64.length; i++) {
+		let pos = Math.floor(Math.random() * myBase64.length)
+		while (hash.indexOf(myBase64.charAt(pos)) >= 0) pos = Math.floor(Math.random() * myBase64.length)
+		hash += myBase64.charAt(pos)
+	}
+    return hash
+}
+
 // Decodes the order hash with a concrete orientation
 function decodeOrderHash(hash, orientation) {
 	let orderArray = []
 	const auxHash = (orientation === 0) ? hash : invest(hash)
 	const loops = parseInt(imageWidth/hash.length)
-	for (let i = 0; i < loops; i++) {
+	for (let i = 0; i < loops; i++)
 		for (let j = 0; j < hash.length && orderArray.length < imageWidth; j++)
 			orderArray.push(charToDec(auxHash[j]) + hash.length * i)
-	}
 	return orderArray
 }
 
 // Returns an integer from 0 to 63 depending on the char position
 function charToDec(char) {
-    return char.split('').reduce((result, ch) => result * 16 + 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+_'.indexOf(ch), 0)
+    return char.split('').reduce((result, ch) => result * 16 + myBase64.indexOf(ch), 0)
 }
 
 // Invest the order of a hash
