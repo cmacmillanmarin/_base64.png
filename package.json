@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "Scramble/unscramble Image",
+  "name": "Image",
   "description": "Scramble/unscramble Image",
   "engines": {
     "node": ">=7.0.0"
