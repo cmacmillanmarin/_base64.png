@@ -1,7 +1,7 @@
 {
   "private": true,
-  "name": "GorillazPuzle",
-  "description": "Gorillaz 3D Puzzle with particles",
+  "name": "Scramble/unscramble Image",
+  "description": "Scramble/unscramble Image",
   "engines": {
     "node": ">=7.0.0"
   },
@@ -16,8 +16,6 @@
     "css-loader": "^0.28.2",
     "html-webpack-plugin": "^2.26.0",
     "style-loader": "^0.18.0",
-    "three": "^0.83.0",
-    "three-orbit-controls": "^82.1.0",
     "webpack": "^2.2.0",
     "webpack-dev-server": "^2.2.0"
   }

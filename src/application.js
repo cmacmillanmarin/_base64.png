@@ -2,7 +2,6 @@
 //	application.js
 
 import './style/main.css'
-import { ImageUtils } from 'three'
 
 // Image
 const base64Image = './src/images/img.png'
