@@ -10,7 +10,7 @@ module.exports = ({debug = false} = {}) => {
 			'process.env.NODE_ENV': JSON.stringify(debug ? 'development' : 'production')
 		}),
 		new HtmlWebpackPlugin({
-			title: 'Gorillaz Puzzle',
+			title: 'Image',
 			filename: 'index.html'
 		})
 	];
