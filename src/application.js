@@ -4,7 +4,7 @@
 import './style/main.css'
 
 // Image
-const base64Image = './src/images/zuckerberg.png'
+const base64Image = './src/images/kate.png'
 
 // Variables
 let imageWidth
@@ -18,7 +18,7 @@ const rowsUnscrambleLevel = rowsScrambleLevel
 const columnsUnscrambleLevel = columnsScrambleLevel
 const myBase64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+_'
 const myBase32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef'
-const base = myBase64
+const base = myBase32
 
 // Creates 3 Canvas
 const originCanvas = document.createElement('canvas')
