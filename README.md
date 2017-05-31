@@ -1,8 +1,6 @@
-## Scramble/unscramble image
+## _ base64.png
 
-Scramble/unscramble image with base64 hash. Javascript only.
-
-## Install
+Use
 
 ```bash
 $ npm install
