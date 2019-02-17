@@ -6,3 +6,8 @@ Use
 $ npm install
 $ npm start
 ```
+
+Example 
+
+![Image Scrambled](https://raw.githubusercontent.com/cmacmillanmarin/_base64.png/master/src/images/test_scrambled.png)
+

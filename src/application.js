@@ -4,7 +4,7 @@
 import './style/main.css'
 
 // Image
-const base64Image = './src/images/kate.png'
+const base64Image = './src/images/test.jpg'
 
 // Variables
 let imageWidth
@@ -48,6 +48,7 @@ function init() {
 	const img = new Image()
   	img.src = base64Image
   	img.onload = function() {
+		  console.log(img)
 		imageWidth = img.width
 		imageHeight = img.height
 		originCanvas.width = imageWidth
