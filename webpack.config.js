@@ -49,7 +49,7 @@ module.exports = ({debug = false} = {}) => {
 					query: {
 						compact: true,
 						presets: [
-							['es2015', {modules: false}]
+							"@babel/preset-env"
 						]
 					}
 				},
